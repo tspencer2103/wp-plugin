@@ -1,0 +1,26 @@
+.tfnm-item {
+  border: 1px solid #DEDEDE;
+  font-size: .6em;
+  flex: 5;
+  margin: 10px;
+  padding: 4px;
+}
+.tfnm-item span{
+  display: block;
+}
+.tfnm-item .name{
+  margin: 0;
+  padding: 0;
+}
+.tfnm-item .review-count{
+
+}
+.tfnm-item .hours{
+
+}
+.tfnm-item .distance{
+
+}
+.tfnm-item .phone{
+
+}
