@@ -60,9 +60,15 @@ function tfnm_show_five_shortcode( $atts ){
     echo esc_html( $data );
   }
 
-  foreach( tfnm_pretty_display_items( $data ) as $item ){
+	echo '<div id="tfnm">';
+	foreach( tfnm_pretty_display_items( $data ) as $item ){
     echo wp_kses_post( $item );
   }
-
+	echo '</div>';
+	// Yelp Credit
+	echo '<a class="yelp-credit" href="https://www.yelp.com" target="_blank"><span>Powered by Yelp</span>';
+	echo '<img src="' . esc_url( plugin_dir_url( __FILE__ ) . 'public/images/YelpLogo_Trademark/Screen(R)/Yelp_trademark_RGB_outline.png' ) . '" alt="Yelp Logo" />';
+	echo '</a>';
+	
 }
 add_shortcode( 'show_top_five', 'tfnm_show_five_shortcode' );

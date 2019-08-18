@@ -72,6 +72,17 @@ function tfnm_get_data( $args ){
 	return false;
 }
 
+function tfnm_star_rating( $rating ){
+	$image_name = floor( $rating );
+	$decimal = $rating - $image_name;
+
+	if( $decimal >= .5 ){
+		$image_name .= '_half';
+	}
+
+	return plugin_dir_url( dirname( __FILE__ ) ) . 'public/images/yelp_stars/web_and_ios/regular/regular_' . $image_name . '.png';
+}
+
 function tfnm_pretty_display_items( $data ){
 	if( empty( $data ) ){
 		return 'There was an error. Please contact the administrator.';
@@ -87,26 +98,46 @@ function tfnm_pretty_display_items( $data ){
 		}
 
 		$html = '<div class="tfnm-item">';
+
 		$html .= '<h3 class="name">';
 		$html .= '<a href="' . esc_url( $datum->url ) . '" target="_blank">';
 		$html .= esc_html( $datum->name ) . '</a></h3>';
 
+		if( !empty( $datum->image_url ) ){
+			$html .= '<a href="' . esc_url( $datum->url ) . '" target="_blank">';
+			$html .= '<div class="business-image" style="background-image: url( ' . esc_url( $datum->image_url ) . ' );">';
+			//Keeping image tag in source for accessibility
+			$html .= '<img src="' . esc_url( $datum->image_url ) . '" width="200" height="200" alt="' . esc_attr( $datum->name ) . ' Image" />';
+			$html .= '</div></a>';
+		}
+
+		if( !empty( $datum->rating ) ){
+			$stars = tfnm_star_rating( $datum->rating );
+			$html .= '<p class="rating">';
+			$html .= '<a href="' . esc_url( $datum->url ) . '" target="_blank">';
+			$html .= '<img src="' . esc_url( $stars ) . '" alt="Yelp ' . esc_attr( $datum->rating ) . ' Rating Stars Image" /> ';
+			$html .= '</a></p>';
+		}
+
 		if( !empty( $datum->review_count ) ){
-			$html .= '<span class="review-count">' . esc_html( $datum->review_count ) . ' Reviews</span>';
+			$html .= '<p class="review-count">';
+			$html .= '<a href="' . esc_url( $datum->url ) . '" target="_blank">Based on ' . esc_html( $datum->review_count ) . ' Reviews</a>';
+			$html .= '</p>';
 		}
 
 		if( !empty( $datum->hours ) ){
-			$html .= '<span class="hours">Hours: ' . esc_html( $datum->hours ) . '</span>';
+			$html .= '<p class="hours">Hours: ' . esc_html( $datum->hours ) . '</p>';
 		}
 
 		if( !empty( $datum->distance ) ){
-			$html .= '<span class="distance">' . esc_html( round( $datum->distance ) ) . ' m away</span>';
+			$html .= '<p class="distance">You are <span>' . esc_html( round( $datum->distance ) ) . '</span>m away.</p>';
 		}
 
 		if( !empty( $datum->display_phone ) ){
-			$html .= '<span class="phone">T: ' . esc_html( $datum->display_phone ) . '</span>';
+			$html .= '<p class="phone">T: ' . esc_html( $datum->display_phone ) . '</p>';
 		}
 
+		$html .= '<a class="yelp-attribution" href="' . esc_url( $datum->url ) . '" target="_blank"><p>Read more on Yelp</p></a>';
 		$html .= '</div>';
 
 		array_push( $top_five, $html );

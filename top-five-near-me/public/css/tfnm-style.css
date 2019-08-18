@@ -1,26 +1,73 @@
+a.yelp-credit, a:visited.yelp-credit, a:hover.yelp-credit{
+  color: #666;
+  display: block;
+  float: right;
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: .6em;
+}
+a.yelp-credit span{
+  display: inline-block;
+  margin-top: 15px;
+  vertical-align: middle;
+}
+a.yelp-credit img{
+  vertical-align: middle;
+  width: 100px;
+}
+#tfnm{
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
 .tfnm-item {
   border: 1px solid #DEDEDE;
+  color: #111;
   font-size: .6em;
   flex: 5;
   margin: 10px;
   padding: 4px;
 }
-.tfnm-item span{
-  display: block;
+.tfnm-item .business-image{
+  background-size: cover;
+  border-radius: 50%;
+  height: 100px;
+  margin: 8px auto;
+  overflow: hidden;
+  width: 100px;
+}
+.tfnm-item .business-image img{
+  display: none;
+}
+.tfnm-item p{
+  font-family: 'Helvetica Neue', sans-serif;
+  margin: 10px auto;
+  text-transform: uppercase;
+  width: 90%;
 }
 .tfnm-item .name{
-  margin: 0;
+  margin: 0 auto;
+  margin-top: 8px;
   padding: 0;
+  width: 90%;
 }
-.tfnm-item .review-count{
-
+.tfnm-item .review-count, .tfnm-item .rating{
+  margin: 0;
+  text-align: center;
 }
-.tfnm-item .hours{
-
+.tfnm-item .review-count a, .tfnm-item .review-count a:visited, .tfnm-item .review-count a:hover{
+  color: #111;
 }
-.tfnm-item .distance{
-
+.tfnm-item .distance span{
+  color: #666;
 }
-.tfnm-item .phone{
-
+.tfnm-item .yelp-attribution, .tfnm-item .yelp-attribution a, .tfnm-item .yelp-attribution a:visited, .tfnm-item .yelp-attribution a:hover{
+  color: #666;
+  text-align: center;
+}
+.tfnm-item .yelp-attribution p{
+  margin: 0 auto;
+}
+.tfnm-item .yelp-attribution img{
+  margin: 0 auto;
+  width: 100px;
 }
