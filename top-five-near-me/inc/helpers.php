@@ -15,6 +15,94 @@ function tfnm_parse_link( $text, $url ){
 }
 
 /**
+* This function is used to find the exact image based on rating.
+* This is a requirement for Yelp branding guidelines.
+*/
+function tfnm_star_rating( $rating ){
+	$image_name = floor( $rating );
+	$decimal = $rating - $image_name;
+
+	if( $decimal >= .5 ){
+		$image_name .= '_half';
+	}
+
+	return plugin_dir_url( dirname( __FILE__ ) ) . 'public/images/yelp_stars/web_and_ios/regular/regular_' . $image_name . '.png';
+}
+
+/**
+* This function is used to make the numbers formatted in a pretty way.
+* It is a function as the logic is used more than once.
+*/
+function tfnm_format_number( $number, $decimal_places ){
+
+	// Checking it is in fact a number before formatting to be safe.
+	if( is_int( $number ) || is_float( $number ) ){
+		return number_format( $number, $decimal_places, '.', ',' );
+	}
+
+	// Just return what was inputted if it fails the checks above.
+	return $number;
+}
+
+/**
+* This function takes inputs and gets API data.
+* It is used to consolidate code, provide consistent error checking and
+*
+*/
+function tfnm_call_api( $api_key, $api_url ){
+
+	$header_args = array();
+
+	if( !empty( $api_key ) ){
+		$header_args = array(
+			'user-agent' => '',
+			'headers' => array(
+				'authorization' => 'Bearer ' . $api_key
+			)
+		);
+	}
+
+	$response = wp_safe_remote_get( $api_url, $header_args );
+
+	// Error proofing
+	if ( is_wp_error( $response ) ) {
+		return 'There was an error in response. Please contact the administrator.';
+	}
+
+	// Doing some data clean up before returning.
+	if( !empty( $response['body'] ) ){
+		$response = json_decode( $response['body'] );
+	}
+
+	return $response;
+}
+
+/**
+* This function will return geocoding and/or geolocation
+*/
+function tfnm_geocode_location( $location ){
+	$api_key = get_option( 'tfnm_options' )[ 'g_api_key' ];
+	$api_url = 'https://maps.googleapis.com/maps/api/geocode/json?address=' . $location . '&key=' . $api_key;
+
+	$response = tfnm_call_api( false, $api_url );
+
+	// Add capability to have a MapQuest (Verizon) or HERE API key
+
+	// This is latitude && This is longitude from Google Maps API
+	if( !empty( $response->results[0]->geometry->location->lat ) && !empty( $response->results[0]->geometry->location->lng ) ){
+		return array(
+			'latitude' => $response->results[0]->geometry->location->lat,
+			'longitude' => $response->results[0]->geometry->location->lng
+		);
+	} else {
+		// Will return if there is not a valid city inputted through the shortcode
+		// OR if the quota limit has been reached
+		return 'There was an error finding the location. Please contact the administrator.';
+	}
+
+}
+
+/**
 * This function gets data from Yelp API.
 * The shortcode and settings area send needed configuration data for the call.
 */
@@ -45,49 +133,26 @@ function tfnm_get_data( $args ){
 	// We're clear, set up the call.
   $api_url = 'https://api.yelp.com/v3/businesses/search?latitude=' . $args['location']['latitude'] . '&longitude=' . $args['location']['longitude'] . '&limit=5&categories=' . $args['categories'];
 
-  $header_args = array(
-    'user-agent' => '',
-    'headers' => array(
-      'authorization' => 'Bearer ' . $api_key
-    )
-  );
+	$response = tfnm_call_api( $api_key, $api_url );
 
-	// Try to get the data
-  $response = wp_safe_remote_get( $api_url, $header_args );
-
-	// Error proofing
-	if ( is_wp_error( $response ) ) {
-		return 'There was an error in response. Please contact the administrator.';
+	if( !empty( $response->businesses ) ){
+		return $response->businesses;
+	} elseif( is_string( $response ) ){
+		// This is here to print location error messaging.
+		return $response;
 	}
 
-	// Doing some data clean up before sending toward the front.
-	if( !empty( $response['body'] ) ){
-		$response = json_decode( $response['body'] );
-		if( !empty( $response->businesses ) ){
-			return $response->businesses;
-		}
-	}
-
-	// Catch all.
+	// Catch all. Something didn't work.
 	return false;
 }
 
-function tfnm_star_rating( $rating ){
-	$image_name = floor( $rating );
-	$decimal = $rating - $image_name;
-
-	if( $decimal >= .5 ){
-		$image_name .= '_half';
-	}
-
-	return plugin_dir_url( dirname( __FILE__ ) ) . 'public/images/yelp_stars/web_and_ios/regular/regular_' . $image_name . '.png';
-}
-
 function tfnm_pretty_display_items( $data ){
+	// Will get printed if there was an error in tfnm_get_data() and the catch all -- false -- was returned.
 	if( empty( $data ) ){
 		return 'There was an error. Please contact the administrator.';
 	}
 
+	// Declaration
 	$top_five = array();
 
 	foreach( $data as $datum ){
@@ -120,8 +185,10 @@ function tfnm_pretty_display_items( $data ){
 		}
 
 		if( !empty( $datum->review_count ) ){
+			// Format the review count number to look nice with thousands separator
+			$number = tfnm_format_number( $datum->review_count, 0 );
 			$html .= '<p class="review-count">';
-			$html .= '<a href="' . esc_url( $datum->url ) . '" target="_blank">Based on ' . esc_html( $datum->review_count ) . ' Reviews</a>';
+			$html .= '<a href="' . esc_url( $datum->url ) . '" target="_blank">Based on ' . esc_html( $number ) . ' Reviews</a>';
 			$html .= '</p>';
 		}
 
@@ -130,7 +197,8 @@ function tfnm_pretty_display_items( $data ){
 		}
 
 		if( !empty( $datum->distance ) ){
-			$html .= '<p class="distance">You are <span>' . esc_html( round( $datum->distance ) ) . '</span>m away.</p>';
+			$number = tfnm_format_number( $datum->distance, 0 );
+			$html .= '<p class="distance">You are <span>' . esc_html( $number ) . '</span>m away.</p>';
 		}
 
 		if( !empty( $datum->display_phone ) ){

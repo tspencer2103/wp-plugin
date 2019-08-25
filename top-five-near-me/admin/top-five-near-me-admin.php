@@ -45,28 +45,53 @@ function tfnm_register_settings(){
   register_setting(
     'tfnm_options',
     'tfnm_options',
-    'tfnm_validate_text'
+    'tfnm_validate'
   );
 
   add_settings_section(
 		'tfnm_section_admin',
-		'Enter your Yelp API Key.',
+		'Set up the plugin.',
 		'tfnm_callback_section_admin',
 		'tfnm_settings'
 	);
 
   add_settings_field(
     'api_key',
-    'API Key',
+    'Yelp API Key',
     'tfnm_text_field',
     'tfnm_settings',
     'tfnm_section_admin',
     array(
       'id' => 'api_key',
-      'label' => 'Learn how to get an API Key in the <a href="" target="_blank">Yelp Fusion Documentation</a>.',
+      'label' => 'Learn how to get a Yelp API Key in the <a href="" target="_blank">Yelp Fusion Documentation</a>.',
       'url' => 'https://www.yelp.com/developers/documentation/v3/authentication'
     )
   );
+
+	add_settings_field(
+		'auto_locate',
+		'Auto Locate?',
+		'tfnm_checkbox_field',
+		'tfnm_settings',
+		'tfnm_section_admin',
+		array(
+			'id' => 'auto_locate',
+			'label' => 'Checking this item off will require a Google Maps API Key and will allow the plugin to geolocate and geocode.'
+		)
+	);
+
+	add_settings_field(
+		'g_api_key',
+		'Google Map API Key',
+		'tfnm_text_field',
+		'tfnm_settings',
+		'tfnm_section_admin',
+		array(
+			'id' => 'g_api_key',
+			'label' => 'Learn how to get a Google Maps API Key in the <a href="" target="_blank">Google Cloud Documentation</a>.',
+			'url' => 'https://developers.google.com/maps/gmp-get-started#get-api-key'
+		)
+	);
 
 }
 add_action( 'admin_init', 'tfnm_register_settings' );

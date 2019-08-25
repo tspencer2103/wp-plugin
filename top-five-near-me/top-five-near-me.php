@@ -37,17 +37,28 @@ function tfnm_show_five_shortcode( $atts ){
     'categories' => ''
   );
 
-  // Set up configuration from shortcode
-  $atts = wp_parse_args( $atts, $default_atts );
-
-  // $atts parses the value as a string
-  // In this case, a true value will mean find location automatically
+  // $atts parses the boolean value as a string
+  // In this case, a true value will mean find location automatically AKA geolcation
   if( 'true' === $atts['location'] ){
     $atts['location'] = array(
 			'latitude' => 42.360081,
 			'longitude' => -71.058884
 		);
   }
+
+	// The user has decided not to have the site automatically find the location and passed a city name.
+	// First, check to see if the location is already a latitude/longitude array
+	// Then, get gecode location based on text string input
+	if( !is_array( $atts['location'] ) ){
+		$atts['location'] = tfnm_geocode_location( $atts['location'] );
+		if( is_string( $atts['location'] ) ){
+			echo esc_html( $atts['location'] );
+			return;
+		}
+	}
+
+	// Set up configuration from shortcode
+	$atts = wp_parse_args( $atts, $default_atts );
 
   // Try to get data
   $data = tfnm_get_data( $atts );
@@ -66,9 +77,9 @@ function tfnm_show_five_shortcode( $atts ){
   }
 	echo '</div>';
 	// Yelp Credit
-	echo '<a class="yelp-credit" href="https://www.yelp.com" target="_blank"><span>Powered by Yelp</span>';
+	echo '<a class="yelp-credit" href="https://www.yelp.com" target="_blank"><span>All business listings above powered by Yelp</span>';
 	echo '<img src="' . esc_url( plugin_dir_url( __FILE__ ) . 'public/images/YelpLogo_Trademark/Screen(R)/Yelp_trademark_RGB_outline.png' ) . '" alt="Yelp Logo" />';
 	echo '</a>';
-	
+
 }
 add_shortcode( 'show_top_five', 'tfnm_show_five_shortcode' );
